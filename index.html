@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leads Management</title>
+
+  <!-- Firebase Configuration -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyA3nbEg2xo1-PwauKKrIZ-wbNt1B9VcLj8",
+        authDomain: "meloda-e15ce.firebaseapp.com",
+        projectId: "meloda-e15ce",
+        storageBucket: "meloda-e15ce.appspot.com",
+        messagingSenderId: "282403645187",
+        appId: "1:282403645187:web:076aaac23fb7969f86eb36",
+        measurementId: "G-2BH3MTFX2V"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let leadsData = []; // Store all leads data
+
+    // Function to load and display leads from Firestore
+    async function loadLeads() {
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      const leadsTable = document.getElementById('leadsTable').getElementsByTagName('tbody')[0];
+      const noResults = document.getElementById('noResults');
+      
+      // Clear previous results
+      leadsTable.innerHTML = '';
+      noResults.style.display = 'none';
+
+      try {
+        // Fetch leads from Firestore
+        const querySnapshot = await getDocs(collection(db, "leads"));
+        let leadsFound = false;
+
+        // Store all leads data for future filtering
+        leadsData = []; // Clear existing data
+        querySnapshot.forEach((doc) => {
+          const lead = doc.data();
+          leadsData.push(lead);
+        });
+
+        // Filter leads based on email or phone matching search query
+        const filteredLeads = leadsData.filter(lead => 
+          lead.email.toLowerCase().includes(searchQuery) || 
+          lead.phone.toLowerCase().includes(searchQuery)
+        );
+
+        // Sort the leads alphabetically by name (or modify as needed)
+        filteredLeads.sort((a, b) => a.name.localeCompare(b.name));
+
+        if (filteredLeads.length === 0) {
+          noResults.style.display = 'block';
+        } else {
+          filteredLeads.forEach((lead) => {
+            const row = leadsTable.insertRow();
+            row.innerHTML = `
+              <td>${lead.name}</td>
+              <td>${lead.gender}</td>
+              <td>${lead.email}</td>
+              <td>${lead.phone}</td>
+            `;
+          });
+        }
+
+      } catch (error) {
+        console.error('Error fetching leads: ', error);
+        alert('There was an error fetching the leads.');
+      }
+    }
+
+    // Event listener for input change
+    document.getElementById('searchInput').addEventListener('input', loadLeads);
+
+    // Clear the search input and reload all data
+    function clearSearch() {
+      document.getElementById('searchInput').value = ''; // Clear input field
+      loadLeads();  // Reload all data
+    }
+
+    // Initial load of leads
+    loadLeads();
+  </script>
+
+  <!-- Custom CSS -->
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f7fc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .search-box input {
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      width: 300px;
+      font-size: 16px;
+    }
+
+    .search-box button {
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      margin-left: 10px;
+    }
+
+    table {
+      width: 80%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: #fff;
+    }
+
+    table th, table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #f4f4f4;
+    }
+
+    table th {
+      background-color: #3e8e41;
+      color: white;
+    }
+
+    table tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    .no-results {
+      text-align: center;
+      color: #666;
+      font-size: 18px;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Leads Management</h1>
+
+  <!-- Search Box -->
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search by Email or Phone">
+    <!-- <button onclick="clearSearch">Clear</button> -->
+  </div>
+
+  <!-- Leads Table -->
+  <table id="leadsTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Gender</th>
+        <th>Email</th>
+        <th>Phone</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data will be inserted here -->
+    </tbody>
+  </table>
+
+  <div id="noResults" class="no-results" style="display: none;">No leads found</div>
+
+</body>
+</html>
