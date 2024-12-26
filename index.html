@@ -40,10 +40,8 @@
       try {
         // Fetch leads from Firestore
         const querySnapshot = await getDocs(collection(db, "leads"));
-        let leadsFound = false;
-
-        // Store all leads data for future filtering
         leadsData = []; // Clear existing data
+
         querySnapshot.forEach((doc) => {
           const lead = doc.data();
           leadsData.push(lead);
@@ -61,9 +59,10 @@
         if (filteredLeads.length === 0) {
           noResults.style.display = 'block';
         } else {
-          filteredLeads.forEach((lead) => {
+          filteredLeads.forEach((lead, index) => {
             const row = leadsTable.insertRow();
             row.innerHTML = `
+              <td>${index + 1}</td> <!-- Serial Number -->
               <td>${lead.name}</td>
               <td>${lead.gender}</td>
               <td>${lead.email}</td>
@@ -173,13 +172,14 @@
   <!-- Search Box -->
   <div class="search-box">
     <input type="text" id="searchInput" placeholder="Search by Email or Phone">
-    <!-- <button onclick="clearSearch">Clear</button> -->
+    <!-- <button onclick="clearSearch()">Clear</button> -->
   </div>
 
   <!-- Leads Table -->
   <table id="leadsTable">
     <thead>
       <tr>
+        <th>S. No</th> <!-- Added Serial Number Column -->
         <th>Name</th>
         <th>Gender</th>
         <th>Email</th>
